@@ -72,3 +72,38 @@ for angle in range(-360, 361):
 error = nn.evaluate(test_inputs, test_targets)
 
 print(f"Mean Absolute Error: {error:.6f}")
+
+# ==========================================================
+# Interactive Prediction
+# ==========================================================
+
+while True:
+
+    user_input = input("\nEnter an angle in degrees (or 'q' to quit): ")
+
+    if user_input.lower() == "q":
+        print("Goodbye!")
+        break
+
+    try:
+        angle = float(user_input)
+
+        # Normalize the input exactly like during training
+        x = [angle / 360]
+
+        # Neural network prediction
+        prediction = nn.predict(x)[0]
+
+        # Actual cosine value
+        expected = math.cos(math.radians(angle))
+
+        # Calculate the error
+        error = abs(prediction - expected)
+
+        print(f"Angle      : {angle}°")
+        print(f"Prediction : {prediction:.6f}")
+        print(f"Real cos   : {expected:.6f}")
+        print(f"Error      : {error:.6f}")
+
+    except ValueError:
+        print("Please enter a valid number.")
