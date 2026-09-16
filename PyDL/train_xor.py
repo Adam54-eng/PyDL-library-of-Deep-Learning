@@ -1,16 +1,17 @@
+import math
 import random
 import pydl
 from pydl import *
 
 # ==========================================================
 # Neural Network Example
-# Learn the XOR logical function
+# Learn the cosine function: y = cos(x)
 # ==========================================================
 
 # Create a neural network with:
-# 2 inputs → 3 hidden layers of 10 neurons → 1 output
+# 1 input → 3 hidden layers of 10 neurons → 1 output
 nn = pydl.Neuronal_network(
-    [2, 10, 10, 10, 1],
+    [1, 10, 10, 10, 1],
     pydl.Initialization.he
 )
 
@@ -22,28 +23,27 @@ nn.set_activation(
     )
 )
 
-# Replace the output activation with Sigmoid
-# since XOR outputs values between 0 and 1.
+# Replace the output activation with Tanh
+# since cos(x) is naturally bounded between -1 and 1.
 nn.neurones[-1][0].activation = pydl.Activation(
-    pydl.Sigmoid.forward,
-    pydl.Sigmoid.derivative
+    pydl.Tanh.forward,
+    pydl.Tanh.derivative
 )
 
 # ==========================================================
 # Training
 # ==========================================================
 
-xor_data = [
-    ([0, 0], [0]),
-    ([0, 1], [1]),
-    ([1, 0], [1]),
-    ([1, 1], [0])
-]
+for _ in range(500000):
 
-for _ in range(100000):
+    # Generate a random angle in degrees
+    angle = random.uniform(-360, 360)
 
-    # Select a random XOR example
-    x, target = random.choice(xor_data)
+    # Expected output: cosine of the angle
+    target = [math.cos(math.radians(angle))]
+
+    # Normalize the input to the range [-1, 1]
+    x = [angle / 360]
 
     # Perform one backpropagation step
     nn.back_propagation(x, target, 0.001)
@@ -52,27 +52,58 @@ for _ in range(100000):
 # Save the trained model
 # ==========================================================
 
-nn.save_json("xor_model.json")
+nn.save_json("data.json")
 
-print("Training complete! Model saved to xor_model.json")
+print("Training complete! Model saved to data.json")
 
 # ==========================================================
 # Model Evaluation
 # ==========================================================
 
-test_inputs = [x for x, _ in xor_data]
-test_targets = [y for _, y in xor_data]
+# Generate a test dataset
+test_inputs = []
+test_targets = []
 
+for angle in range(-360, 361):
+    test_inputs.append([angle / 360])
+    test_targets.append([math.cos(math.radians(angle))])
+
+# Compute the mean absolute error
 error = nn.evaluate(test_inputs, test_targets)
 
 print(f"Mean Absolute Error: {error:.6f}")
 
 # ==========================================================
-# Predictions
+# Interactive Prediction
 # ==========================================================
 
-print("\nXOR Predictions:")
+while True:
 
-for x, expected in xor_data:
-    prediction = nn.predict(x)[0]
-    print(f"{x} -> {prediction:.3f} (expected {expected[0]})")
+    user_input = input("\nEnter an angle in degrees (or 'q' to quit): ")
+
+    if user_input.lower() == "q":
+        print("Goodbye!")
+        break
+
+    try:
+        angle = float(user_input)
+
+        # Normalize the input exactly like during training
+        x = [angle / 360]
+
+        # Neural network prediction
+        prediction = nn.predict(x)[0]
+
+        # Actual cosine value
+        expected = math.cos(math.radians(angle))
+
+        # Calculate the error
+        error = abs(prediction - expected)
+
+        print(f"Angle      : {angle}°")
+        print(f"Prediction : {prediction:.6f}")
+        print(f"Real cos   : {expected:.6f}")
+        print(f"Error      : {error:.6f}")
+
+    except ValueError:
+        print("Please enter a valid number.")
