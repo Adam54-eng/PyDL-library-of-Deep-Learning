@@ -34,7 +34,7 @@ nn.neurones[-1][0].activation = pydl.Activation(
 # Training
 # ==========================================================
 
-for _ in range(500000):
+for _ in range(100000):
 
     # Generate a random angle in degrees
     angle = random.uniform(-360, 360)
